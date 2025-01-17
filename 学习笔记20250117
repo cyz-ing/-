@@ -1,0 +1,71 @@
+一.assert!的使用，以及与assert_eq!的区别，并清楚了使用的条件：
+assert_eq!(power_of_2(0), 1);
+assert!(is_even(2));
+is_even和power_of_2是两个具有不同返回值类型的函数，is_even以bool类型作为其函数的返回值，assert!接受布尔表达式，成功执行；而power_of_2返回值类型为u64,assert_eq!宏则是比较左右两边值是否相等，即left==right;
+
+二.函数返回类型Self与结构体：
+Self通常用于表示当前结构体的类型，目前见到有几种用法：
+1. 作为关联函数的返回类型：
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Point {
+    fn new(x: i32, y: i32) -> Self {
+        Point { x, y }
+    }
+}
+2. 在方法中使用 Self：
+impl Point {
+    fn clone(&self) -> Self {
+        Self {
+            x: self.x,
+            y: self.y,
+        }
+    }
+}
+通过 self 可以访问结构体的字段，并创建一个新的 Point 实例
+3.方法调用中的 Self：
+struct MyStruct {
+    value: i32,
+}
+
+impl MyStruct {
+    fn add(&mut self, num: i32) -> &mut Self {
+        self.value += num;
+        self
+    }
+}
+这里的&mut self即表示&mut Mystruct,作为函数的参数
+
+三.浮点数运算与访问rust标准库中的常量:
+在rust语言中，浮点数往往是你想要数字的近似表达，f32，f64 上的比较运算实现的是 std::cmp::PartialEq 特征(类似其他语言的接口)，但是并没有实现 std::cmp::Eq 特征
+。我们可以通过一个例子来了解，来避免掉入这两个陷阱，首先就是避免在浮点数上比较相等性（这是语言圣经的解释，便于记录，在此引用）：
+fn main() {
+  // 断言0.1 + 0.2与0.3相等
+  assert!(0.1 + 0.2 == 0.3
+);
+}
+实际上这个代码它会 panic（程序崩溃，抛出异常），因为二进制精度问题，导致了 0.1 + 0.2 并不严格等于 0.3，它们可能在小数点 N 位后存在误差。
+那如果非要进行比较呢？可以考虑用这种方式 (0.1_f64 + 0.2 - 0.3).abs() < 0.00001 ，具体小于多少，取决于你对精度的需求。
+对于这段代码：
+abc (f32)
+   0.1 + 0.2: 3e99999a
+         0.3: 3e99999a
+
+xyz (f64)
+   0.1 + 0.2: 3fd3333333333334
+         0.3: 3fd3333333333333
+显然对于f64由于精度过高，0.1+0.2并不等于0.3，尽管只是细微的差别，也可能引起程序报错。
+上述是我在学习浮点数时遇到的问题，我在第一阶段练习时，也碰到了一个问题：
+在clippy1中，对于设定的pi=3.14不能直接将其放在公式中计算圆的面积，我便调用了rust标准库中的std::f32::consts::PI，访问标准库中的PI解决问题，排除错误；
+fn main() {
+    // TODO: Fix the Clippy lint in this line.
+    let pi = std::f32::consts::PI;
+    let radius: f32 = 5.0;
+
+    let area = pi * radius.powi(2);
+
+    println!("The area of a circle with radius {radius:.2} is {area:.5}");
+}
