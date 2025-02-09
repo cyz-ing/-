@@ -1,0 +1,71 @@
+1.Option的作用：
+Option<T>是一个枚举类型，它含有两个变体，Some<T>和None,分别表示存在一个类型为T的值，一个表示不存在，但是我其实是有疑问的，虽然能够理解他的基础代码，但我不能理解设置该类型的意义
+后来了解一些实例，并联系较为熟悉的c语言，大概想通了。
+规定有返回值的函数是必须有具体类型被返回，比如我们在进行挑选数据的时候，在循环或数组中可能会有不需要的值出现，这时不需要返回这个值，需要用“错误”代替，这时将返回值类型定为option<T>便也就方便了这个问题，
+也就不需要再主函数中再次书写这种错误的情况。
+其次就是变量的初始化：
+fn main() {
+    let condition = false;
+    let maybe_number: Option<i32> = if condition {
+        Some(42)
+    } else {
+        None
+    };
+
+    if let Some(num) = maybe_number {
+        println!("The number is {}", num);
+    } else {
+        println!("No number available");
+    }
+}
+这里，maybe_number 变量根据 condition 的值来决定是初始化为 Some(42) 还是 None。
+容器中的可选元素：在容器（如 Vec 或 HashMap）中，有时某些元素可能是可选的。可以使用 Option<T> 作为容器元素的类型
+fn main() {
+    let vec_with_options: Vec<Option<i32>> = vec![Some(1), None, Some(3)];
+    for maybe_num in vec_with_options {
+        if let Some(num) = maybe_num {
+            println!("Number: {}", num);
+        } else {
+            println!("No number");
+        }
+    }
+}
+2.Box<T>结构体的应用：
+在 Rust 中，Box<T> 是一种智能指针类型，也被称为 “装箱” 类型，它提供了在堆上分配内存并存储数据的方式。
+其实刚接触的时候我并不明白（甚至看了定义也没看懂）
+先举一个简单的例子吧：
+动态大小类型的存储：
+trait Shape {
+    fn area(&self) -> f64;
+}
+
+struct Circle {
+    radius: f64,
+}
+
+impl Shape for Circle {
+    fn area(&self) -> f64 {
+        std::f64::consts::PI * self.radius * self.radius
+    }
+}
+
+fn main() {
+    let circle = Circle { radius: 2.0 };
+    let shape: Box<dyn Shape> = Box::new(circle);
+    println!("Area: {}", shape.area());
+}
+Shape 是一个特征，Circle 实现了 Shape 特征。使用 Box<dyn Shape> 可以存储一个实现了 Shape 特征的对象
+大对象传递：
+struct LargeObject {
+    data: [u8; 1024],
+}
+
+fn process_large_object(obj: Box<LargeObject>) {
+    println!("Processing large object...");
+}
+
+fn main() {
+    let large_obj = Box::new(LargeObject { data: [0; 1024] });
+    process_large_object(large_obj);
+}
+LargeObject 是一个包含 1024 个字节的大对象。使用 Box<LargeObject> 可以避免在传递对象时进行数据的复制，提高性能。
