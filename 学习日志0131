@@ -1,0 +1,48 @@
+1.枚举类型的定义与枚举变体：
+枚举类型一般使用enum关键字进行定义，在练习过程中示例如下：
+enum Message {
+    Quit,
+    ChangeColor(u8,u8,u8),
+    Echo(String),
+    Move(Point),
+}
+在这里定义了一个名叫Message的枚举类型，其中包括4个变体，变体接收的数据需要根据情况设定，比如颜色采用RGB元组的数据类型，需要自己设定。
+枚举故名思意，处理有限个可能的情况，比如红绿灯的三种情况，使得代码的可读性与可维护性得到提高。
+其次就是关联数据，枚举的每一个变体可以关联不同类型的数据，比如在计算三角形，圆形，矩形，利用枚举可方便操作，清晰的运算或处理：
+enum Shape {
+    Circle(f64),
+    Rectangle(f64, f64),
+    Triangle(f64, f64, f64),
+}
+fn area(shape: Shape) -> f64 {
+    match shape {
+        Shape::Circle(radius) => std::f64::consts::PI * radius * radius,
+        Shape::Rectangle(width, height) => width * height,
+        Shape::Triangle(a, b, c) => {
+            let s = (a + b + c) / 2.0;
+            (s * (s - a) * (s - b) * (s - c)).sqrt()
+        }
+    }
+}
+2.多线程问题：
+std::sync::Arc存在于rust标准库中，Arc是一种智能指针，为在多线程环境安全的共享和使用不可变的数据。
+use::std::thread从标准库中调用,thread::spawn(move || { ... })创建新的线程，handle.join().unwrap()等待新线程执行完毕。
+fn main() {
+    let numbers: Vec<_> = (0..100u32).collect();
+    let shared_numbers = Arc::new(numbers);// TODO
+    let mut joinhandles = Vec::new();
+
+    for offset in 0..8 {
+        let child_numbers = shared_numbers.clone();// TODO
+        运用智能指针，实现多线程共享数据，在这8个线程中，每个线程的初始数据是一样的。
+        joinhandles.push(thread::spawn(move || {
+            let sum: u32 = child_numbers.iter().filter(|&&n| n % 8 == offset).sum();
+            同时运用了迭代器，迭代复制的向量之中的每个值，这个值的要求必须同8取余的余数等于offset,将这些数据放在一起求和。
+            println!("Sum of offset {} is {}", offset, sum);
+        }));
+    }
+    for handle in joinhandles.into_iter() {
+        handle.join().unwrap();
+    }
+}
+多线程问题，体现计算机的后台工作原理，开始面对这些代码确实有些难懂，但是后续渐渐理解了。
