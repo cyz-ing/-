@@ -1,0 +1,43 @@
+1，Rust中Cow类型的使用及其测试：
+首先，先进行了解，Cow 是一个枚举类型，它有两个变体：
+Cow::Borrowed：表示借用的数据，类似于 &T。当不需要修改数据时，使用借用的数据可以避免不必要的内存分配和克隆操作，提高性能。
+Cow::Owned：表示拥有的数据，类似于 T。当需要修改数据时，会将借用的数据克隆一份，转为拥有的数据，从而可以安全地进行修改。
+在rust编程语言中作用显著，避免内存的浪费，提高效率的好方式
+fn abs_all<'a, 'b>(input: &'a mut Cow<'b, [i32]>) -> &'a mut Cow<'b, [i32]> {
+//a,b为生命周期，a为输入到输出的生命周期，b为Cow内部存储的数据的生命周期，接受一个整数类型i32的切片。
+    for i in 0..input.len() {
+        let v = input[i];
+        if v < 0 {
+            // Clones into a vector if not already owned.
+            input.to_mut()[i] = -v;
+        }
+    }
+    input
+}
+#[test]
+fn reference_mutation() -> Result<(), &'static str> {
+    // Clone occurs because `input` needs to be mutated.
+    let slice = [-1, 0, 1];
+    let mut input = Cow::from(&slice[..]);
+    match abs_all(&mut input) {
+        Cow::Owned(_) => Ok(()),
+        _ => Err("Expected owned value"),
+    }
+}
+对于如上实例，它在处理数据时提供了一种高效的方式，能够根据是否需要修改数据来决定是否进行克隆操作，存在负数需要修改就会将借用转化为所有，不存在负数的情况则以借用形式保存。
+2.Rust标准库中rc中的Rc计数智能指针：
+说实话，刚接触这道题我就被又臭又长的代码吓退了，于是我选择借用人工智能查阅并试图解释他的使用方法，并对题目中的代码进行解释，算是懂了。
+Rc指针实现了多个所有者共用一个数据，在练习题目中以太阳系实例为我们引导了这种方法。
+struct Sun {}
+enum Planet {
+    Mercury(Rc<Sun>),
+    Venus(Rc<Sun>),
+    Earth(Rc<Sun>),
+    Mars(Rc<Sun>),
+    Jupiter(Rc<Sun>),
+    Saturn(Rc<Sun>),
+    Uranus(Rc<Sun>),
+    Neptune(Rc<Sun>),
+}
+用enum关键字定义枚举类型，枚举类型中的每一个变体接受同一个“母亲”Sun结构体，
+它使得各行星都能创造一个Sun结构体中的示例，他们公用Sun结构体，并利用Rc::strong_count();的方法统计并记录数字，并进行累加递减。
