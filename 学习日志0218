@@ -1,0 +1,66 @@
+1.关于可变类型如何进行借用的问题：
+首先可变类型就是mut,我们在题中常见的用法，就是在一个存储某一特定数据类型的变量前加上mut关键字，便就实现了可变类型的转换
+借用像&String，&Vec<i32>等形式在题目中经常出现，这里举一个例子吧，想要说明的是一种很容易出现的问题
+fn main() {
+    let mut x = 100;
+    {
+        let y = &mut x;
+        *y += 100;
+    }
+    let z = &mut x;
+    *z += 1000;
+    assert_eq!(x, 1200);
+}
+fn main() {
+    let mut x = 100;
+    let y = &mut x;
+    *y += 100;
+    let z = &mut x;
+    *z += 1000;
+    assert_eq!(x, 1200);
+}
+这两段代码乃一个能够被rust编译器编译成功呢？
+答案是第一个，针对可变类型的x变量，变量y和z分别借用x,并对数值进行修改，内容两种代码是一致的，目的是一样的，但是由于rust不允许在同一作用域内重复引用同一变量进行操作，所以到导致了程序的报错。
+2.关于借用和所有数据的相关问题：
+从意思上来讲，见名之义，借用肯定是不能拥有对数据的所有权的，就像我去骑共享单车一样，这自行车当然不可能是我的，也不会允许以我的名义占有。
+在rust编程语言中，也是这样的。
+// Should not take ownership仅仅只是借用
+fn get_char(data: &String) -> char {
+    data.chars().last().unwrap()
+}
+
+// Should take ownership需要拥有所有权
+fn string_uppercase( mut data: String) {
+    data = data.to_uppercase();
+
+    println!("{}", data);
+}
+在实际编程环境中，注意项目或任务的要求就可以，基本的操作上述代码几乎实现了教学的目的。
+3.最后就是关于如何对数组进行切片，创建重复数字的大数组，以及元组如何实现对其中数据的提取等基础方法（注：由于上次算法过于抽象，所一这次换一个简单的作为学习安排，目的就是换换脑子）
+fn main() {
+    let cat = ("Furry McFurson", 3.5);
+    let (name,age) = cat;
+
+    println!("{} is {} years old.", name, age);
+}
+仿照键值对，创造新的变量放置于元组之中，每个变量接受元组中的对应值。
+#[test]
+fn slice_out_of_array() {
+    let a = [1, 2, 3, 4, 5];
+
+    let nice_slice = &a[1..4];
+
+    assert_eq!([2, 3, 4], nice_slice)
+}
+这里[1..4]的含义是左边的下标可以取到，右边的下标索引所代表的数据不能取到，像极了高中左闭右开的集合，梦回高中。
+fn main() {
+    let a : [i32;200]（左边是重复的类型，右边是重复的个数，这个整体就是对类型的表示）=[0;200]（这个当然就是实例）;
+
+    if a.len() >= 100 {
+        println!("Wow, that's a big array!");
+    } else {
+        println!("Meh, I eat arrays like that for breakfast.");
+    }
+}
+
+
