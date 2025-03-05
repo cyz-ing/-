@@ -1,0 +1,62 @@
+一、二叉搜索树（在algorithm习题中遇到的一种常见的数据结构：
+二叉搜索树由节点构成，每个节点最多拥有2个子节点（可以有空节点），在做题过程中我学习到了如何定义二叉树，如何插入遍历二叉树
+struct TreeNode {
+    val: i32,
+    left: Option<Box<TreeNode>>,
+    right: Option<Box<TreeNode>>,
+}
+# 定义二叉树节点结构，实例中应用Option类型，更好的处理了空节点可能带来的情况，每个节点都包含一个值val，以及其左右两子节点的指针
+impl TreeNode {
+    fn new(val: i32) -> Self {
+        TreeNode {
+            val,
+            left: None,
+            right: None,
+        }
+    }
+}
+# 为结构体定义了一个关联函数，名字就叫做new,该函数的作用就在于创建一个新的结构体实例，该操作创建了节点。
+对于遍历树中的所有节点，一般方法分为两种，递归式与非递归式遍历，在题目中运用了第二种方式，我对其进行了着重的学习与了解：
+非递归式遍历，通过查阅大致有所理解：
+use std::collections::VecDeque;
+# VecDeque在rust标准库中是双端队列的实现，它支持在队列的两端插入或删除数据
+fn inorder_traversal_non_recursive(root: &Option<Box<TreeNode>>) {
+# 参数root指向Option<Box<TreeNode>>的引用
+    let mut stack = VecDeque::new();
+    # 创建空的双端队列
+    let mut current = root.clone();
+    # 克隆根节点是为了避免在后续操作中修改原始的根节点引用。
+    while current.is_some() ||!stack.is_empty() {
+    # 只要节点不为空继续进行循环内部的操作
+        while let Some(node) = current {
+            stack.push_back(node.clone());
+            # 将当前节点的克隆添加到栈也就是内个队列的尾部
+            current = node.left;
+             # 将 current 更新为当前节点的左子节点，继续遍历左子树
+        }
+        if let Some(node) = stack.pop_back() {
+        # 尝试从栈也就是队列的末尾弹出一个节点。如果栈不为空，则将弹出的节点赋值给 node
+            println!("{}", node.val);
+            current = node.right;
+            # 继续遍历右节点
+        }
+    }
+}
+
+fn main() {
+    let root = Some(Box::new(TreeNode {
+        val: 1,
+        left: Some(Box::new(TreeNode::new(2))),
+        right: Some(Box::new(TreeNode::new(3))),
+    }));
+
+    inorder_traversal_non_recursive(&root);
+}
+输出结果遍历所有节点。
+给我的感受就是东西挺复杂的，说实话不断地查阅和理解，我也只就到了这个程度，能够大概的知道需要做什么，怎么做，理解题目中的代码并尽自己所能修改。
+二、阶段性质的总结与提升
+截至2月底寒假结束，我已经完成了107（110题内部）道题，在练习中学习，我了解到了许多没有接触过的新概念，新模式。
+比如分支的使用，在rust中如何让模块公共的被调用，多线程处理问题（数据的共有，安全的分享数据Arc指针），迭代器的使用，Box在堆中分配内存的智能指针，rust标准库中的许多概念
+更重要的是结构体，数组，引用，借用，指针，变量，数据类型的转换，assert判断等基本概念的了解和学习，了解了rust别于其它语言的独特，充分体验到了rust语言的难度，认识了算法
+，数据结构，有了初始的印象，相信会为日后的学习奠基。
+
